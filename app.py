@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import torch
 import torch.nn as nn
@@ -184,4 +183,3 @@ if run and uploaded:
         <p>Confidence: {score*100:.2f}%</p>
     </div>
     """, unsafe_allow_html=True)
-```
