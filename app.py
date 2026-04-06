@@ -18,7 +18,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-st.markdown("""
+st.markdown(
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap');
 
@@ -305,7 +305,7 @@ h1, h2, h3, h4, p, label, span, div {
     color: #e8e8e8 !important;
 }
 </style>
-""", unsafe_allow_html=True)
+, unsafe_allow_html=True)
 
 
 @st.cache_resource
