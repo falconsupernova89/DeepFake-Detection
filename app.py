@@ -1,3 +1,4 @@
+import streamlit.components.v1 as components
 import streamlit as st
 import torch
 import torch.nn as nn
@@ -18,294 +19,78 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-st.markdown(
+st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body, [data-testid="stAppViewContainer"] {
-    background-color: #0a0a0a !important;
-    color: #e8e8e8 !important;
-}
-
-[data-testid="stAppViewContainer"] {
-    background: #0a0a0a !important;
-}
-
-[data-testid="stHeader"] { display: none; }
-[data-testid="stSidebar"] { display: none; }
-[data-testid="stToolbar"] { display: none; }
-.stDeployButton { display: none; }
-#MainMenu { display: none; }
-footer { display: none; }
-
-section[data-testid="stMain"] > div {
-    padding: 0 !important;
+/* Smooth fade-in animation */
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
 }
 
 .block-container {
-    max-width: 680px !important;
-    padding: 60px 24px 80px !important;
-    margin: 0 auto !important;
+    animation: fadeIn 0.8s ease-in-out;
 }
 
-h1, h2, h3, h4, p, label, span, div {
-    font-family: 'Syne', sans-serif !important;
+/* Glow effect */
+.glow {
+    text-shadow: 0 0 10px rgba(200,255,0,0.6),
+                 0 0 20px rgba(200,255,0,0.4);
 }
 
-.hero-label {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 11px;
-    letter-spacing: 0.25em;
-    color: #555;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-}
-
-.hero-title {
-    font-family: 'Syne', sans-serif !important;
-    font-size: clamp(38px, 7vw, 58px);
-    font-weight: 800;
-    line-height: 1.0;
-    color: #f0f0f0;
-    letter-spacing: -0.02em;
-    margin-bottom: 14px;
-}
-
-.hero-title span {
-    color: #c8ff00 !important;
-    font-family: 'Syne', sans-serif !important;
-}
-
-.hero-sub {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 13px;
-    color: #444;
-    margin-bottom: 52px;
-    line-height: 1.6;
-}
-
-.divider {
-    height: 1px;
-    background: linear-gradient(to right, transparent, #222, transparent);
-    margin: 40px 0;
-}
-
-/* Upload zone */
-[data-testid="stFileUploader"] {
-    background: transparent !important;
-}
-
-[data-testid="stFileUploader"] > div {
-    background: #111 !important;
-    border: 1px solid #222 !important;
-    border-radius: 4px !important;
-    padding: 32px !important;
-    transition: border-color 0.2s ease !important;
-}
-
-[data-testid="stFileUploader"] > div:hover {
-    border-color: #c8ff00 !important;
-}
-
-[data-testid="stFileUploader"] label {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 12px !important;
-    color: #555 !important;
-    letter-spacing: 0.1em !important;
-}
-
-[data-testid="stFileUploader"] p {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 12px !important;
-    color: #444 !important;
-}
-
-/* Button */
-.stButton > button {
-    background: #c8ff00 !important;
-    color: #0a0a0a !important;
-    border: none !important;
-    border-radius: 2px !important;
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 13px !important;
-    letter-spacing: 0.08em !important;
-    padding: 14px 32px !important;
-    width: 100% !important;
-    cursor: pointer !important;
-    text-transform: uppercase !important;
-    transition: opacity 0.15s ease !important;
-    margin-top: 8px !important;
-}
-
-.stButton > button:hover {
-    opacity: 0.85 !important;
-    background: #c8ff00 !important;
-    color: #0a0a0a !important;
-}
-
-.stButton > button:disabled {
-    background: #1e1e1e !important;
-    color: #333 !important;
-    opacity: 1 !important;
-}
-
-/* Result card */
+/* Glass effect cards */
 .result-card {
-    border: 1px solid #1e1e1e;
-    border-radius: 4px;
-    padding: 32px;
-    margin-top: 32px;
-    background: #0d0d0d;
+    backdrop-filter: blur(12px);
+    background: rgba(20,20,20,0.6);
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
 }
 
-.result-verdict {
-    font-family: 'Syne', sans-serif !important;
-    font-size: 48px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    margin-bottom: 8px;
+/* Hover animation */
+.result-card:hover {
+    transform: translateY(-4px);
+    transition: all 0.3s ease;
 }
 
-.verdict-fake { color: #ff4444; }
-.verdict-real { color: #c8ff00; }
-
-.result-conf {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 12px;
-    color: #444;
-    margin-bottom: 32px;
-    letter-spacing: 0.05em;
-}
-
-.signal-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #161616;
-}
-
-.signal-row:last-child { border-bottom: none; }
-
-.signal-name {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 11px;
-    color: #444;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.signal-val {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 12px;
-    color: #888;
-}
-
-.bar-wrap {
-    width: 100px;
-    height: 2px;
-    background: #1a1a1a;
-    border-radius: 1px;
+/* Button animation */
+.stButton > button {
+    position: relative;
     overflow: hidden;
-    margin: 0 16px;
 }
 
-.bar-fill {
+.stButton > button::after {
+    content: "";
+    position: absolute;
+    width: 0;
     height: 100%;
-    border-radius: 1px;
-    transition: width 0.6s ease;
+    left: 0;
+    top: 0;
+    background: rgba(255,255,255,0.15);
+    transition: width 0.3s;
 }
 
-.bar-high { background: #ff4444; }
-.bar-low  { background: #c8ff00; }
-.bar-mid  { background: #888; }
-
-.prob-ring-wrap {
-    display: flex;
-    justify-content: center;
-    margin: 24px 0 32px;
+.stButton > button:hover::after {
+    width: 100%;
 }
 
-.section-label {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: #2e2e2e;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    margin-top: 28px;
+/* Upload drag glow */
+[data-testid="stFileUploader"] > div:hover {
+    box-shadow: 0 0 20px rgba(200,255,0,0.3);
 }
 
-/* Progress bar override */
-[data-testid="stProgress"] > div > div {
-    background: #1a1a1a !important;
-    border-radius: 1px !important;
+/* Pulse animation */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(200,255,0,0.4);}
+    70% { box-shadow: 0 0 0 10px rgba(200,255,0,0);}
+    100% { box-shadow: 0 0 0 0 rgba(200,255,0,0);}
 }
 
-[data-testid="stProgress"] > div > div > div {
-    background: #c8ff00 !important;
-    border-radius: 1px !important;
+.stButton > button {
+    animation: pulse 2s infinite;
 }
 
-/* Spinner */
-[data-testid="stSpinner"] p {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 12px !important;
-    color: #444 !important;
-}
-
-/* Image display */
-[data-testid="stImage"] {
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-/* Selectbox */
-[data-testid="stSelectbox"] label {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 11px !important;
-    color: #444 !important;
-    letter-spacing: 0.1em !important;
-    text-transform: uppercase !important;
-}
-
-/* Warning / info */
-[data-testid="stAlert"] {
-    background: #111 !important;
-    border: 1px solid #222 !important;
-    border-radius: 2px !important;
-    font-family: 'DM Mono', monospace !important;
-    font-size: 12px !important;
-}
-
-/* Metric */
-[data-testid="stMetric"] {
-    background: #111 !important;
-    border: 1px solid #1a1a1a !important;
-    border-radius: 4px !important;
-    padding: 16px !important;
-}
-
-[data-testid="stMetricLabel"] p {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 10px !important;
-    color: #444 !important;
-    letter-spacing: 0.15em !important;
-    text-transform: uppercase !important;
-}
-
-[data-testid="stMetricValue"] {
-    font-family: 'Syne', sans-serif !important;
-    font-size: 24px !important;
-    font-weight: 700 !important;
-    color: #e8e8e8 !important;
-}
 </style>
-, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 
 @st.cache_resource
